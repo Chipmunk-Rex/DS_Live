@@ -7,6 +7,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/DS1AttributeComponent.h"
+#include "UI/DS1PlayerHUDWidget.h"
 
 // Sets default values
 ADS1Character::ADS1Character()
@@ -28,15 +30,29 @@ ADS1Character::ADS1Character()
 	Camera->SetupAttachment(SpringArm);
 
 	// Character Movement
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+
+	// Chatacter Attribute
+	AttributeComponent = CreateDefaultSubobject<UDS1AttributeComponent>(TEXT("Attribute"));
 }
 
 // Called when the game starts or when spawned
 void ADS1Character::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (PlayerHUDWidgetClass)
+	{
+		PlayerHUDWidget = CreateWidget<UDS1PlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass);
+
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->AddToViewport();
+		}
+	}
 }
 
 // Called every frame
@@ -44,6 +60,8 @@ void ADS1Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	GEngine->AddOnScreenDebugMessage(0, 1.5f, FColor::Cyan, FString::Printf(TEXT("Stamina : %f"), AttributeComponent->GetBaseStamina()));
+	GEngine->AddOnScreenDebugMessage(2, 1.5f, FColor::Cyan, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
 }
 
 void ADS1Character::NotifyControllerChanged()
@@ -73,7 +91,20 @@ void ADS1Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ADS1Character::Input_Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADS1Character::Input_Look);
+
+		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Triggered, this, &ADS1Character::Sprinting);
+		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Completed, this, &ADS1Character::StopSprint);
 	}
+}
+
+bool ADS1Character::IsMoving() const
+{
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		return (MovementComponent->Velocity.Size2D() > 3.0f && MovementComponent->GetCurrentAcceleration() != FVector::ZeroVector);
+	}
+
+	return false;
 }
 
 void ADS1Character::Input_Move(const FInputActionValue& InputValue)
@@ -99,5 +130,33 @@ void ADS1Character::Input_Look(const FInputActionValue& InputValue)
 
 	AddControllerYawInput(LookVector.X);
 	AddControllerPitchInput(LookVector.Y);
+}
+
+void ADS1Character::Sprinting()
+{
+	if (AttributeComponent)
+	{
+		if (AttributeComponent->CheckHasEnoughStamina(5.0f) && IsMoving())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = SprintingSpeed;
+
+			AttributeComponent->ToggleStaminaRegeneration(false);
+			AttributeComponent->DecreaseStamina(UseStamina);
+		}
+		else
+		{
+			StopSprint();
+		}
+	}
+}
+
+void ADS1Character::StopSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+
+	if (AttributeComponent)
+	{
+		AttributeComponent->ToggleStaminaRegeneration(true);
+	}
 }
 

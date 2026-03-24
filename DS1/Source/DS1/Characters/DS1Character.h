@@ -24,6 +24,19 @@ public:
 	virtual void NotifyControllerChanged() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+public:
+	bool IsMoving() const;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = Sprinting)
+	float SprintingSpeed = 750.0f;
+
+	UPROPERTY(EditAnywhere, Category = Sprinting)
+	float NormalSpeed = 500.0f;
+
+	UPROPERTY(EditAnywhere, Category = Sprinting)
+	float UseStamina = 0.1f;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class USpringArmComponent> SpringArm;
@@ -31,10 +44,28 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UCameraComponent> Camera;
 
+protected:
+	/** 캐릭터의 스탯 관리*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UDS1AttributeComponent> AttributeComponent;
+
+// UI Section
+protected:
+	/** WBP_PlayerHUD 에셋 포인터 */
+	UPROPERTY(EditAnywhere, Category = UI)
+	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
+
+	/** 생성된 WBP_PlayerHUD 위젯의 포인터 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UDS1PlayerHUDWidget> PlayerHUDWidget;
+
 #pragma region InputSystem
 public:
 	void Input_Move(const FInputActionValue& InputValue);
 	void Input_Look(const FInputActionValue& InputValue);
+
+	void Sprinting();
+	void StopSprint();
 
 protected:
 	UPROPERTY(EditAnywhere, Category = InputSystem)
@@ -45,5 +76,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = InputSystem)
 	TObjectPtr<class UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, Category = InputSystem)
+	TObjectPtr<class UInputAction> SprintRollingAction;
 #pragma endregion
 };
