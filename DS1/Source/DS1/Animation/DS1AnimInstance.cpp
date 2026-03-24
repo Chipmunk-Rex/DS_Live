@@ -4,6 +4,7 @@
 #include "Animation/DS1AnimInstance.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Characters/DS1Character.h"
 
 UDS1AnimInstance::UDS1AnimInstance()
 {
@@ -38,4 +39,13 @@ void UDS1AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bShouldMove = (GroundSpeed > 3.0f && MovementComponent->GetCurrentAcceleration() != FVector::ZeroVector);
 
 	bIsFalling = MovementComponent->IsFalling();
+}
+
+void UDS1AnimInstance::AnimNotify_ResetMovementInput()
+{
+	ADS1Character* LocalCharacter = Cast<ADS1Character>(GetOwningActor());
+	if (LocalCharacter)
+	{
+		LocalCharacter->bMovementInputEnabled = true;
+	}
 }

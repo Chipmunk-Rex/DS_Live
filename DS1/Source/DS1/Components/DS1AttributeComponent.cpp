@@ -41,6 +41,8 @@ bool UDS1AttributeComponent::CheckHasEnoughStamina(float StaminaCost) const
 void UDS1AttributeComponent::DecreaseStamina(float StaminaCost)
 {
 	BaseStamina = FMath::Clamp(BaseStamina - StaminaCost, 0.f, MaxStamina);
+
+	BroadcastAttributeChanged(EDS1AttributeType::Stamina);
 }
 
 void UDS1AttributeComponent::ToggleStaminaRegeneration(bool bEnabled, float StartDelay)
@@ -62,9 +64,32 @@ void UDS1AttributeComponent::RegenerateStamina()
 {
 	BaseStamina = FMath::Clamp(BaseStamina + StaminaRegenRate, 0.0f, MaxStamina);
 
+	BroadcastAttributeChanged(EDS1AttributeType::Stamina);
+
 	if (BaseStamina >= MaxStamina)
 	{
 		ToggleStaminaRegeneration(false);
+	}
+}
+
+void UDS1AttributeComponent::BroadcastAttributeChanged(EDS1AttributeType InAttributeType) const
+{
+	if (OnAttributeChanged.IsBound())
+	{
+		float Ratio = 0.0f;
+
+		switch (InAttributeType)
+		{
+		case EDS1AttributeType::Stamina:
+			Ratio = BaseStamina / MaxStamina;
+			break;
+		case EDS1AttributeType::Health:
+			break;
+		default:
+			break;
+		}
+
+		OnAttributeChanged.Broadcast(InAttributeType, Ratio);
 	}
 }
 

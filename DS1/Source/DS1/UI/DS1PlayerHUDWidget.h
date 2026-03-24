@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DS1Define.h"
 #include "Blueprint/UserWidget.h"
 #include "DS1PlayerHUDWidget.generated.h"
 
@@ -19,6 +20,9 @@ public:
 
 public:
 	virtual void NativeConstruct() override;
+
+public:
+	void OnAttributeChanged(EDS1AttributeType AttributeType, float InValue);
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))

@@ -45,6 +45,14 @@ protected:
 	TObjectPtr<class UCameraComponent> Camera;
 
 protected:
+	/** 애니메이션 관리*/
+	UPROPERTY(EditAnywhere, Category = Montage)
+	TObjectPtr<UAnimMontage> RollingMontage;
+
+public:
+	bool bMovementInputEnabled = true;
+
+protected:
 	/** 캐릭터의 스탯 관리*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UDS1AttributeComponent> AttributeComponent;
@@ -66,6 +74,7 @@ public:
 
 	void Sprinting();
 	void StopSprint();
+	void Rolling();
 
 protected:
 	UPROPERTY(EditAnywhere, Category = InputSystem)

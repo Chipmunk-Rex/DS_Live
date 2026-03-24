@@ -94,6 +94,7 @@ void ADS1Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Triggered, this, &ADS1Character::Sprinting);
 		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Completed, this, &ADS1Character::StopSprint);
+		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Canceled, this, &ADS1Character::Rolling);
 	}
 }
 
@@ -109,6 +110,9 @@ bool ADS1Character::IsMoving() const
 
 void ADS1Character::Input_Move(const FInputActionValue& InputValue)
 {
+	if (bMovementInputEnabled == false)
+		return;
+
 	FVector2D MovementVector = InputValue.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -156,6 +160,29 @@ void ADS1Character::StopSprint()
 
 	if (AttributeComponent)
 	{
+		AttributeComponent->ToggleStaminaRegeneration(true);
+	}
+}
+
+void ADS1Character::Rolling()
+{
+	check(AttributeComponent);
+
+	if (AttributeComponent->CheckHasEnoughStamina(15.0f))
+	{
+		// 이동입력 처리 무시
+		bMovementInputEnabled = false;
+
+		// 스태미나 충전 멈춤
+		AttributeComponent->ToggleStaminaRegeneration(false);
+
+		// 스태미나 차감
+		AttributeComponent->DecreaseStamina(15.0f);
+
+		// 롤링 애니메이션 재생
+		PlayAnimMontage(RollingMontage);
+
+		// 스태미나 충전 시작
 		AttributeComponent->ToggleStaminaRegeneration(true);
 	}
 }
