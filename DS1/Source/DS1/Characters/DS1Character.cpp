@@ -8,7 +8,9 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/DS1AttributeComponent.h"
+#include "Components/DS1StateComponent.h"
 #include "UI/DS1PlayerHUDWidget.h"
+#include "DS1GameplayTags.h"
 
 // Sets default values
 ADS1Character::ADS1Character()
@@ -37,6 +39,9 @@ ADS1Character::ADS1Character()
 
 	// Chatacter Attribute
 	AttributeComponent = CreateDefaultSubobject<UDS1AttributeComponent>(TEXT("Attribute"));
+
+	// Character State
+	StateComponent = CreateDefaultSubobject<UDS1StateComponent>(TEXT("State"));
 }
 
 // Called when the game starts or when spawned
@@ -110,8 +115,12 @@ bool ADS1Character::IsMoving() const
 
 void ADS1Character::Input_Move(const FInputActionValue& InputValue)
 {
-	if (bMovementInputEnabled == false)
+	check(StateComponent);
+
+	if (StateComponent->MovementInputEnabled() == false)
+	{
 		return;
+	}
 
 	FVector2D MovementVector = InputValue.Get<FVector2D>();
 
@@ -167,11 +176,12 @@ void ADS1Character::StopSprint()
 void ADS1Character::Rolling()
 {
 	check(AttributeComponent);
+	check(StateComponent);
 
 	if (AttributeComponent->CheckHasEnoughStamina(15.0f))
 	{
 		// 이동입력 처리 무시
-		bMovementInputEnabled = false;
+		StateComponent->ToggleMovementInput(false);
 
 		// 스태미나 충전 멈춤
 		AttributeComponent->ToggleStaminaRegeneration(false);
@@ -181,6 +191,9 @@ void ADS1Character::Rolling()
 
 		// 롤링 애니메이션 재생
 		PlayAnimMontage(RollingMontage);
+
+		// 롤링 상태 설정
+		StateComponent->SetCurrentState(DS1GameplayTags::Character_State_Rolling);
 
 		// 스태미나 충전 시작
 		AttributeComponent->ToggleStaminaRegeneration(true);

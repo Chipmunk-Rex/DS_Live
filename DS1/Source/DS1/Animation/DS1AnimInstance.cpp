@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Characters/DS1Character.h"
+#include "Components/DS1StateComponent.h"
 
 UDS1AnimInstance::UDS1AnimInstance()
 {
@@ -46,6 +47,6 @@ void UDS1AnimInstance::AnimNotify_ResetMovementInput()
 	ADS1Character* LocalCharacter = Cast<ADS1Character>(GetOwningActor());
 	if (LocalCharacter)
 	{
-		LocalCharacter->bMovementInputEnabled = true;
+		LocalCharacter->GetStateComponent()->ToggleMovementInput(true);
 	}
 }

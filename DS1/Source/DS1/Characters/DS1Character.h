@@ -27,6 +27,11 @@ public:
 public:
 	bool IsMoving() const;
 
+public:
+	FORCEINLINE class UDS1AttributeComponent* GetAttributeComponent() const { return AttributeComponent; }
+
+	FORCEINLINE class UDS1StateComponent* GetStateComponent() const { return StateComponent; }
+
 protected:
 	UPROPERTY(EditAnywhere, Category = Sprinting)
 	float SprintingSpeed = 750.0f;
@@ -49,13 +54,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Montage)
 	TObjectPtr<UAnimMontage> RollingMontage;
 
-public:
-	bool bMovementInputEnabled = true;
-
 protected:
 	/** 캐릭터의 스탯 관리*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UDS1AttributeComponent> AttributeComponent;
+
+	/** 캐릭터의 상태 관리*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UDS1StateComponent> StateComponent;
 
 // UI Section
 protected:
