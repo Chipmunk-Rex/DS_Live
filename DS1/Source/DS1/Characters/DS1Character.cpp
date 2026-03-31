@@ -11,6 +11,8 @@
 #include "Components/DS1StateComponent.h"
 #include "UI/DS1PlayerHUDWidget.h"
 #include "DS1GameplayTags.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Interfaces/DS1InteractionInterface.h"
 
 // Sets default values
 ADS1Character::ADS1Character()
@@ -100,6 +102,8 @@ void ADS1Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Triggered, this, &ADS1Character::Sprinting);
 		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Completed, this, &ADS1Character::StopSprint);
 		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Canceled, this, &ADS1Character::Rolling);
+
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ADS1Character::Interact);
 	}
 }
 
@@ -197,6 +201,43 @@ void ADS1Character::Rolling()
 
 		// 스태미나 충전 시작
 		AttributeComponent->ToggleStaminaRegeneration(true);
+	}
+}
+
+void ADS1Character::Interact()
+{
+	FHitResult OutHit;
+	const FVector Start = GetActorLocation();
+	const FVector End = Start;
+	const float Radius = 100.0f;
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectType;
+	ObjectType.Add(UEngineTypes::ConvertToObjectType(COLLISION_OBJECT_INTERACTION));
+
+	TArray<AActor*> ActorsToIgnore;
+
+	bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
+		this,
+		Start,
+		End,
+		Radius,
+		ObjectType,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		OutHit,
+		true);
+
+	if (bHit)
+	{
+		if (AActor* HitActor = OutHit.GetActor())
+		{
+			IDS1InteractionInterface* Interaction = Cast<IDS1InteractionInterface>(HitActor);
+			if (Interaction)
+			{
+				Interaction->Interact(this);
+			}
+		}
 	}
 }
 
