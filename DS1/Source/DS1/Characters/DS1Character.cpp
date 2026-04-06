@@ -9,10 +9,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/DS1AttributeComponent.h"
 #include "Components/DS1StateComponent.h"
+#include "Components/DS1CombatComponent.h"
 #include "UI/DS1PlayerHUDWidget.h"
 #include "DS1GameplayTags.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Interfaces/DS1InteractionInterface.h"
+#include "Equipments/DS1Weapon.h"
 
 // Sets default values
 ADS1Character::ADS1Character()
@@ -44,6 +46,9 @@ ADS1Character::ADS1Character()
 
 	// Character State
 	StateComponent = CreateDefaultSubobject<UDS1StateComponent>(TEXT("State"));
+
+	// Combat
+	CombatComponent = CreateDefaultSubobject<UDS1CombatComponent>(TEXT("Combat"));
 }
 
 // Called when the game starts or when spawned
@@ -104,6 +109,8 @@ void ADS1Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(SprintRollingAction, ETriggerEvent::Canceled, this, &ADS1Character::Rolling);
 
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ADS1Character::Interact);
+
+		EnhancedInputComponent->BindAction(ToggleCombatAction, ETriggerEvent::Triggered, this, &ADS1Character::ToggleCombat);
 	}
 }
 
@@ -115,6 +122,18 @@ bool ADS1Character::IsMoving() const
 	}
 
 	return false;
+}
+
+bool ADS1Character::CanToggleCombat() const
+{
+	check(StateComponent);
+
+	FGameplayTagContainer CheckTags;
+	CheckTags.AddTag(DS1GameplayTags::Character_State_Attacking);
+	CheckTags.AddTag(DS1GameplayTags::Character_State_Rolling);
+	CheckTags.AddTag(DS1GameplayTags::Character_State_GeneralAction);
+
+	return StateComponent->IsCurrentStateEqualToAny(CheckTags) == false;
 }
 
 void ADS1Character::Input_Move(const FInputActionValue& InputValue)
@@ -236,6 +255,33 @@ void ADS1Character::Interact()
 			if (Interaction)
 			{
 				Interaction->Interact(this);
+			}
+		}
+	}
+}
+
+void ADS1Character::ToggleCombat()
+{
+	check(StateComponent);
+	check(CombatComponent);
+
+	if (CombatComponent)
+	{
+		const ADS1Weapon* Weapon = CombatComponent->GetMainWeapon();
+		if (Weapon)
+		{
+			if (CanToggleCombat())
+			{
+				StateComponent->SetCurrentState(DS1GameplayTags::Character_State_GeneralAction);
+
+				if (CombatComponent->IsCombatEnabled())
+				{
+					PlayAnimMontage(Weapon->GetUnequipMontage());
+				}
+				else
+				{
+					PlayAnimMontage(Weapon->GetEquipMontage());
+				}
 			}
 		}
 	}

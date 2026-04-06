@@ -50,3 +50,12 @@ void UDS1AnimInstance::AnimNotify_ResetMovementInput()
 		LocalCharacter->GetStateComponent()->ToggleMovementInput(true);
 	}
 }
+
+void UDS1AnimInstance::AnimNotify_ResetCurrentState()
+{
+	ADS1Character* LocalCharacter = Cast<ADS1Character>(GetOwningActor());
+	if (LocalCharacter)
+	{
+		LocalCharacter->GetStateComponent()->ClearCurrentState();
+	}
+}

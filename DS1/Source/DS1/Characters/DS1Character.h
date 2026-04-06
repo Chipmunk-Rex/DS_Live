@@ -26,6 +26,7 @@ public:
 
 public:
 	bool IsMoving() const;
+	bool CanToggleCombat() const;
 
 public:
 	FORCEINLINE class UDS1AttributeComponent* GetAttributeComponent() const { return AttributeComponent; }
@@ -63,6 +64,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UDS1StateComponent> StateComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UDS1CombatComponent> CombatComponent;
+
 // UI Section
 protected:
 	/** WBP_PlayerHUD 에셋 포인터 */
@@ -82,6 +86,7 @@ public:
 	void StopSprint();
 	void Rolling();
 	void Interact();
+	void ToggleCombat();
 
 protected:
 	UPROPERTY(EditAnywhere, Category = InputSystem)
@@ -98,5 +103,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = InputSystem)
 	TObjectPtr<class UInputAction> InteractAction;
+
+	UPROPERTY(EditAnywhere, Category = InputSystem)
+	TObjectPtr<class UInputAction> ToggleCombatAction;
 #pragma endregion
 };
