@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Equipments/DS1Equipment.h"
+#include "GameplayTagContainer.h"
 #include "DS1Weapon.generated.h"
 
 /**
@@ -27,6 +28,11 @@ public:
 	FORCEINLINE UAnimMontage* GetEquipMontage() const {	return EquipMontageAnimation; }
 	FORCEINLINE UAnimMontage* GetUnequipMontage() const { return UnequipMontageAnimation; }
 
+public:
+	UAnimMontage* GetMontageForTag(const FGameplayTag& GroupTag, const int32 Index = 0);
+
+	float GetStaminaCost(const FGameplayTag& InTag) const;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment | Socket")
 	FName EquipSocketName;
@@ -39,6 +45,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment | Animation")
 	TObjectPtr<class UAnimMontage> UnequipMontageAnimation;
+
+// Data Section
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment | Montage")
+	TObjectPtr<class UDS1MontageActionData> MontageActionData;
+
+	UPROPERTY(EditAnywhere)
+	TMap<FGameplayTag, float> StaminaCostMap;
 
 protected:
 	UPROPERTY()

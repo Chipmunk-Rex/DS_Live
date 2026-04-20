@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameplayTagContainer.h"
 #include "DS1Character.generated.h"
 
 struct FInputActionValue;
@@ -27,6 +28,25 @@ public:
 public:
 	bool IsMoving() const;
 	bool CanToggleCombat() const;
+	bool CanPerformAttack(const FGameplayTag& AttackTag) const;
+
+// Attack Section
+public:
+	/** 콤보 실행 */
+	void ExecuteComboAttack(const FGameplayTag& AttackTag);
+
+	/** 공격 실행 */
+	void DoAttack(const FGameplayTag& AttackTag);
+
+	/** 콤보 초기화 */
+	void ResetComboAttack();
+
+	/** 콤보 종료*/
+	void AttackFinished(const float ComboResetDelay);
+
+	/** 콤보 공격*/
+	void EnableComboWindow();
+	void DisableComboWindow();
 
 public:
 	FORCEINLINE class UDS1AttributeComponent* GetAttributeComponent() const { return AttributeComponent; }
@@ -42,6 +62,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Sprinting)
 	float UseStamina = 0.1f;
+
+// Combo Section
+protected:
+	/**콤보 입력 가능?*/
+	bool bCanComboInput = false;
+
+	/** 콤보 입력 여부 */
+	bool bSavedComboInput = false;
+
+	/** 콤보 카운트*/
+	int32 ComboCount = 0;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -88,6 +119,9 @@ public:
 	void Interact();
 	void ToggleCombat();
 
+	void LightAttack();
+	void SpecialAttack();
+
 protected:
 	UPROPERTY(EditAnywhere, Category = InputSystem)
 	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
@@ -106,5 +140,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = InputSystem)
 	TObjectPtr<class UInputAction> ToggleCombatAction;
+
+	UPROPERTY(EditAnywhere, Category = InputSystem)
+	TObjectPtr<class UInputAction> AttackAction;
 #pragma endregion
 };

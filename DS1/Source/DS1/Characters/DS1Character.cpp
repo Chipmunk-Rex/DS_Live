@@ -111,6 +111,9 @@ void ADS1Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ADS1Character::Interact);
 
 		EnhancedInputComponent->BindAction(ToggleCombatAction, ETriggerEvent::Triggered, this, &ADS1Character::ToggleCombat);
+
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Canceled, this, &ADS1Character::LightAttack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ADS1Character::SpecialAttack);
 	}
 }
 
@@ -134,6 +137,108 @@ bool ADS1Character::CanToggleCombat() const
 	CheckTags.AddTag(DS1GameplayTags::Character_State_GeneralAction);
 
 	return StateComponent->IsCurrentStateEqualToAny(CheckTags) == false;
+}
+
+bool ADS1Character::CanPerformAttack(const FGameplayTag& AttackTag) const
+{
+	check(StateComponent);
+	check(CombatComponent);
+	check(AttributeComponent);
+
+	if (IsValid(CombatComponent->GetMainWeapon()) == false)
+	{
+		return false;
+	}
+
+	FGameplayTagContainer CheckTags;
+	CheckTags.AddTag(DS1GameplayTags::Character_State_Rolling);
+	CheckTags.AddTag(DS1GameplayTags::Character_State_GeneralAction);
+
+	const float StaminaCost = CombatComponent->GetMainWeapon()->GetStaminaCost(AttackTag);
+
+	return StateComponent->IsCurrentStateEqualToAny(CheckTags) == false
+		&& CombatComponent->IsCombatEnabled()
+		&& AttributeComponent->CheckHasEnoughStamina(StaminaCost);
+}
+
+void ADS1Character::ExecuteComboAttack(const FGameplayTag& AttackTag)
+{
+	check(StateComponent);
+
+	if (StateComponent->GetCurrentState() != DS1GameplayTags::Character_State_Attacking)
+	{
+		ResetComboAttack();
+
+		DoAttack(AttackTag);
+	}
+	else if (bCanComboInput)
+	{
+		bSavedComboInput = true;
+	}
+}
+
+void ADS1Character::DoAttack(const FGameplayTag& AttackTag)
+{
+	check(StateComponent);
+	check(AttributeComponent);
+	check(CombatComponent);
+
+	ADS1Weapon* Weapon = CombatComponent->GetMainWeapon();
+	if (Weapon)
+	{
+		UAnimMontage* Montage = Weapon->GetMontageForTag(AttackTag, ComboCount);
+		if (Montage == nullptr)
+		{
+			ComboCount = 0;
+			Montage = Weapon->GetMontageForTag(AttackTag, ComboCount);
+		}
+
+		PlayAnimMontage(Montage);
+
+		StateComponent->SetCurrentState(DS1GameplayTags::Character_State_Attacking);
+		StateComponent->ToggleMovementInput(false);
+
+		AttributeComponent->ToggleStaminaRegeneration(false);
+
+		const float StaminaCost = Weapon->GetStaminaCost(AttackTag);
+		AttributeComponent->DecreaseStamina(StaminaCost);
+
+		AttributeComponent->ToggleStaminaRegeneration(true, 1.5f);
+	}
+}
+
+void ADS1Character::ResetComboAttack()
+{
+	bCanComboInput = false;
+	bSavedComboInput = false;
+	ComboCount = 0;
+}
+
+void ADS1Character::AttackFinished(const float ComboResetDelay)
+{
+	GEngine->AddOnScreenDebugMessage(4, 1.0f, FColor::Magenta, TEXT("AttackFinished"));
+
+	if (StateComponent)
+	{
+		StateComponent->ToggleMovementInput(true);
+	}
+}
+
+void ADS1Character::EnableComboWindow()
+{
+	bCanComboInput = true;
+}
+
+void ADS1Character::DisableComboWindow()
+{
+	bCanComboInput = false;
+
+	if (bSavedComboInput)
+	{
+		bSavedComboInput = false;
+		ComboCount++;
+		DoAttack(DS1GameplayTags::Character_Attack_Light);
+	}
 }
 
 void ADS1Character::Input_Move(const FInputActionValue& InputValue)
@@ -287,3 +392,26 @@ void ADS1Character::ToggleCombat()
 	}
 }
 
+void ADS1Character::LightAttack()
+{
+	const FGameplayTag AttackTag = DS1GameplayTags::Character_Attack_Light;
+
+	if (CanPerformAttack(AttackTag))
+	{
+		GEngine->AddOnScreenDebugMessage(4, 1.0f, FColor::Magenta, TEXT("LightAttack"));
+
+		ExecuteComboAttack(AttackTag);
+	}
+}
+
+void ADS1Character::SpecialAttack()
+{
+	const FGameplayTag AttackTag = DS1GameplayTags::Character_Attack_Special;
+
+	if (CanPerformAttack(AttackTag))
+	{
+		GEngine->AddOnScreenDebugMessage(4, 1.0f, FColor::Magenta, TEXT("SpecialAttack"));
+
+		ExecuteComboAttack(AttackTag);
+	}
+}
