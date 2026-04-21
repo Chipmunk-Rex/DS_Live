@@ -5,9 +5,14 @@
 #include "Components/DS1CombatComponent.h"
 #include "Data/DS1MontageActionData.h"
 #include "DS1GameplayTags.h"
+#include "Components/DS1WeaponCollisionComponent.h"
 
 ADS1Weapon::ADS1Weapon()
 {
+	WeaponCollisionComponent = CreateDefaultSubobject<UDS1WeaponCollisionComponent>(TEXT("WeaponCollision"));
+
+	WeaponCollisionComponent->OnHitActor.AddUObject(this, &ADS1Weapon::OnHitActor);
+
 	StaminaCostMap.Add(DS1GameplayTags::Character_Attack_Light, 3.0f);
 	StaminaCostMap.Add(DS1GameplayTags::Character_Attack_Special, 15.0f);
 }
@@ -24,6 +29,15 @@ void ADS1Weapon::EquipItem()
 		const FName AttachSocket = CombatComponent->IsCombatEnabled() ? EquipSocketName : UnequipSocketName;
 
 		AttachToOwner(AttachSocket);
+
+		if (WeaponCollisionComponent)
+		{
+			// 무기 메쉬 정보
+			WeaponCollisionComponent->SetWeaponMesh(Mesh);
+			
+			// 무기를 소유한 Actor를 Ignore
+			WeaponCollisionComponent->AddIgnoreActor(GetOwner());
+		}
 	}
 }
 
@@ -44,4 +58,24 @@ float ADS1Weapon::GetStaminaCost(const FGameplayTag& InTag) const
 		return StaminaCostMap[InTag];
 	}
 	return 0.f;
+}
+
+void ADS1Weapon::TurnOnWeaponCollision()
+{
+	if (WeaponCollisionComponent)
+	{
+		WeaponCollisionComponent->TurnOnCollision();
+	}
+}
+
+void ADS1Weapon::TurnOffWeaponCollision()
+{
+	if (WeaponCollisionComponent)
+	{
+		WeaponCollisionComponent->TurnOffCollision();
+	}
+}
+
+void ADS1Weapon::OnHitActor(const FHitResult& Hit)
+{
 }

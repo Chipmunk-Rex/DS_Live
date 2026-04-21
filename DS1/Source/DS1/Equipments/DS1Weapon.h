@@ -33,6 +33,13 @@ public:
 
 	float GetStaminaCost(const FGameplayTag& InTag) const;
 
+public:
+	void TurnOnWeaponCollision();
+	void TurnOffWeaponCollision();
+
+	// 무기의 충돌에 검출된 Actor에 데미지 전달
+	void OnHitActor(const FHitResult& Hit);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment | Socket")
 	FName EquipSocketName;
@@ -57,4 +64,7 @@ protected:
 protected:
 	UPROPERTY()
 	TObjectPtr<class UDS1CombatComponent> CombatComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UDS1WeaponCollisionComponent> WeaponCollisionComponent;
 };
