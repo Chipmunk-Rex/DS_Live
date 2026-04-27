@@ -9,6 +9,8 @@
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FDelegateOnAttributeChanged, EDS1AttributeType, float);
 
+DECLARE_MULTICAST_DELEGATE(FOnDeath);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class DS1_API UDS1AttributeComponent : public UActorComponent
 {
@@ -27,6 +29,9 @@ public:
 	FORCEINLINE float GetBaseStamina() const { return BaseStamina; }
 	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 
+	FORCEINLINE float GetBaseHealth() const { return BaseHealth; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+
 	/** 스태미나가 충분한지 체크*/
 	bool CheckHasEnoughStamina(float StaminaCost) const;
 
@@ -42,9 +47,15 @@ public:
 	/** 스탯 변경 통지 Broadcast Function */
 	void BroadcastAttributeChanged(EDS1AttributeType InAttributeType) const;
 
+	/** 데미지 처리 함수 */
+	void TakeDamageAmount(float DamageAmount);
+
 public:
 	/** 스탯 변경 Delegate */
 	FDelegateOnAttributeChanged OnAttributeChanged;
+
+	/** 죽음 알림 Delegate */
+	FOnDeath OnDeath;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = Attribute)
@@ -52,6 +63,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Attribute)
 	float MaxStamina = 100.0f;
+
+	UPROPERTY(EditAnywhere, Category = Attribute)
+	float BaseHealth = 100.0f;
+
+	UPROPERTY(EditAnywhere, Category = Attribute)
+	float MaxHealth = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = Attribute)
 	float StaminaRegenRate = 0.2f;

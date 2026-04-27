@@ -28,10 +28,14 @@ public:
 	FORCEINLINE UAnimMontage* GetEquipMontage() const {	return EquipMontageAnimation; }
 	FORCEINLINE UAnimMontage* GetUnequipMontage() const { return UnequipMontageAnimation; }
 
+	FORCEINLINE FGameplayTag GetLastAttackType() const { return LastAttackType; }
+	FORCEINLINE void SetLastAttackType(const FGameplayTag& NewAttackType) { LastAttackType = NewAttackType; }
+
 public:
 	UAnimMontage* GetMontageForTag(const FGameplayTag& GroupTag, const int32 Index = 0);
 
 	float GetStaminaCost(const FGameplayTag& InTag) const;
+	float GetAttackDamage(FGameplayTag InAttackType = FGameplayTag::EmptyTag) const;
 
 public:
 	void TurnOnWeaponCollision();
@@ -60,6 +64,18 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TMap<FGameplayTag, float> StaminaCostMap;
+
+	/** 기본 데미지 */
+	UPROPERTY(EditAnywhere)
+	float BaseDamage = 15.0f;
+
+	/** 데미지 승수 맵 */
+	UPROPERTY(EditAnywhere)
+	TMap<FGameplayTag, float> DamageMultiplierMap;
+
+	/** 마지막 AttackType */
+	UPROPERTY(EditAnywhere)
+	FGameplayTag LastAttackType;
 
 protected:
 	UPROPERTY()

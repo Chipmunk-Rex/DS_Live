@@ -6,6 +6,7 @@
 #include "Data/DS1MontageActionData.h"
 #include "DS1GameplayTags.h"
 #include "Components/DS1WeaponCollisionComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ADS1Weapon::ADS1Weapon()
 {
@@ -15,6 +16,9 @@ ADS1Weapon::ADS1Weapon()
 
 	StaminaCostMap.Add(DS1GameplayTags::Character_Attack_Light, 3.0f);
 	StaminaCostMap.Add(DS1GameplayTags::Character_Attack_Special, 15.0f);
+
+	DamageMultiplierMap.Add(DS1GameplayTags::Character_Attack_Light, 1.0f);
+	DamageMultiplierMap.Add(DS1GameplayTags::Character_Attack_Special, 2.0f);
 }
 
 void ADS1Weapon::EquipItem()
@@ -60,6 +64,23 @@ float ADS1Weapon::GetStaminaCost(const FGameplayTag& InTag) const
 	return 0.f;
 }
 
+float ADS1Weapon::GetAttackDamage(FGameplayTag InAttackType) const
+{
+	const AActor* OwnerActor = GetOwner();
+	if (OwnerActor)
+	{
+		const FGameplayTag LastAttackTag = (InAttackType == FGameplayTag::EmptyTag) ? GetLastAttackType() : InAttackType;
+
+		if (DamageMultiplierMap.Contains(LastAttackTag))
+		{
+			const float Multiplier = DamageMultiplierMap[LastAttackTag];
+			return BaseDamage * Multiplier;
+		}
+	}
+
+	return BaseDamage;
+}
+
 void ADS1Weapon::TurnOnWeaponCollision()
 {
 	if (WeaponCollisionComponent)
@@ -78,4 +99,18 @@ void ADS1Weapon::TurnOffWeaponCollision()
 
 void ADS1Weapon::OnHitActor(const FHitResult& Hit)
 {
+	AActor* TargetActor = Hit.GetActor();
+
+	FVector DamageDirection = GetOwner()->GetActorForwardVector();
+
+	float AttackDamage = GetAttackDamage();
+
+	UGameplayStatics::ApplyPointDamage(
+		TargetActor,
+		AttackDamage,
+		DamageDirection,
+		Hit,
+		GetOwner()->GetInstigatorController(),
+		this,
+		nullptr);
 }

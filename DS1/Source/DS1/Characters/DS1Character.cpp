@@ -195,6 +195,8 @@ void ADS1Character::DoAttack(const FGameplayTag& AttackTag)
 
 		PlayAnimMontage(Montage);
 
+		Weapon->SetLastAttackType(AttackTag);
+
 		StateComponent->SetCurrentState(DS1GameplayTags::Character_State_Attacking);
 		StateComponent->ToggleMovementInput(false);
 

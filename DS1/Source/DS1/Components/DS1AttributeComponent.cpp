@@ -2,7 +2,8 @@
 
 
 #include "Components/DS1AttributeComponent.h"
-#include "DS1AttributeComponent.h"
+#include "DS1GameplayTags.h"
+#include "Components/DS1StateComponent.h"
 
 // Sets default values for this component's properties
 UDS1AttributeComponent::UDS1AttributeComponent()
@@ -84,12 +85,38 @@ void UDS1AttributeComponent::BroadcastAttributeChanged(EDS1AttributeType InAttri
 			Ratio = BaseStamina / MaxStamina;
 			break;
 		case EDS1AttributeType::Health:
+			Ratio = BaseHealth / MaxHealth;
 			break;
 		default:
 			break;
 		}
 
 		OnAttributeChanged.Broadcast(InAttributeType, Ratio);
+	}
+}
+
+void UDS1AttributeComponent::TakeDamageAmount(float DamageAmount)
+{
+	// 체력 차감
+	BaseHealth = FMath::Clamp(BaseHealth - DamageAmount, 0.0f, MaxHealth);
+
+	// 체력 차감 알림
+	BroadcastAttributeChanged(EDS1AttributeType::Health);
+
+	if (BaseHealth <= 0.0f)
+	{
+		// 죽음처리
+		if (OnDeath.IsBound())
+		{
+			OnDeath.Broadcast();
+		}
+
+		// State Component -> Set Death State
+		UDS1StateComponent* StateComponent = GetOwner()->FindComponentByClass<UDS1StateComponent>();
+		if (StateComponent)
+		{
+			StateComponent->SetCurrentState(DS1GameplayTags::Character_State_Death);
+		}
 	}
 }
 
