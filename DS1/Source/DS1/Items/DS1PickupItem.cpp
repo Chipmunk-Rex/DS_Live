@@ -49,8 +49,6 @@ void ADS1PickupItem::Tick(float DeltaTime)
 
 void ADS1PickupItem::Interact(AActor* InteractActor)
 {
-	GEngine->AddOnScreenDebugMessage(4, 1.5f, FColor::Blue, TEXT("Interaction PickupItem"));
-
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = InteractActor;
 

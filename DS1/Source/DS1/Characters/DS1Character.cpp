@@ -71,9 +71,6 @@ void ADS1Character::BeginPlay()
 void ADS1Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	GEngine->AddOnScreenDebugMessage(0, 1.5f, FColor::Cyan, FString::Printf(TEXT("Stamina : %f"), AttributeComponent->GetBaseStamina()));
-	GEngine->AddOnScreenDebugMessage(2, 1.5f, FColor::Cyan, FString::Printf(TEXT("MaxWalkSpeed : %f"), GetCharacterMovement()->MaxWalkSpeed));
 }
 
 void ADS1Character::NotifyControllerChanged()
@@ -218,8 +215,6 @@ void ADS1Character::ResetComboAttack()
 
 void ADS1Character::AttackFinished(const float ComboResetDelay)
 {
-	GEngine->AddOnScreenDebugMessage(4, 1.0f, FColor::Magenta, TEXT("AttackFinished"));
-
 	if (StateComponent)
 	{
 		StateComponent->ToggleMovementInput(true);
@@ -400,8 +395,6 @@ void ADS1Character::LightAttack()
 
 	if (CanPerformAttack(AttackTag))
 	{
-		GEngine->AddOnScreenDebugMessage(4, 1.0f, FColor::Magenta, TEXT("LightAttack"));
-
 		ExecuteComboAttack(AttackTag);
 	}
 }
@@ -412,8 +405,6 @@ void ADS1Character::SpecialAttack()
 
 	if (CanPerformAttack(AttackTag))
 	{
-		GEngine->AddOnScreenDebugMessage(4, 1.0f, FColor::Magenta, TEXT("SpecialAttack"));
-
 		ExecuteComboAttack(AttackTag);
 	}
 }

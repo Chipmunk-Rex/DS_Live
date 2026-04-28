@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "DS1Enemy.generated.h"
 
+class ATargetPoint;
+
 UCLASS()
 class DS1_API ADS1Enemy : public ACharacter
 {
@@ -37,6 +39,35 @@ protected:
 	void HitReaction(const AActor* Attacker);
 	UAnimMontage* GetHitReactAnimation(const AActor* Attacker) const;
 
+public:
+	/** 체력바 토글 */ 
+	void ToggleHealthBarVisibility(bool bVisibility);
+
+	/** 체력바 설정*/
+	void SetupHealthBar();
+
+	/** Attribute 변경 델리게이트 함수 */
+	void OnAtrributeChanged(EDS1AttributeType AttributeType, float InValue);
+
+public:
+	FORCEINLINE ATargetPoint* GetPatrolPoint()
+	{
+		return PatrolPoints.Num() >= (PatrolIndex + 1) ? PatrolPoints[PatrolIndex] : nullptr;
+	}
+
+	FORCEINLINE void IncrementPatrolIndex()
+	{
+		PatrolIndex = (PatrolIndex + 1) % PatrolPoints.Num();
+	}
+
+// AI Section
+protected:
+	UPROPERTY(EditAnywhere, Category = "AI | Patrol")
+	TArray<TObjectPtr<ATargetPoint>> PatrolPoints;
+
+	UPROPERTY(VisibleAnywhere, Category = "AI | Patrol")
+	int32 PatrolIndex = 0;
+
 // Effect Section
 protected:
 	UPROPERTY(EditAnywhere, Category = "Effect")
@@ -65,4 +96,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UDS1StateComponent> StateComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UWidgetComponent> HealthBarWidgetComponent;
 };

@@ -22,6 +22,7 @@ public:
 
 public:
 	void SetRatio(float Ratio) const;
+	void SetStatBarColor(FLinearColor NewColor);
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))

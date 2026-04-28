@@ -27,4 +27,7 @@ public:
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	TObjectPtr<class UDS1StatBarWidget> StaminaBarWidget;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UDS1StatBarWidget> HealthBarWidget;
 };

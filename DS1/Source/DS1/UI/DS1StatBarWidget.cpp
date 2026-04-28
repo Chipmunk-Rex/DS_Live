@@ -26,3 +26,11 @@ void UDS1StatBarWidget::SetRatio(float Ratio) const
 		StatBar->SetPercent(Ratio);
 	}
 }
+
+void UDS1StatBarWidget::SetStatBarColor(FLinearColor NewColor)
+{
+	if (StatBar)
+	{
+		StatBar->SetFillColorAndOpacity(NewColor);
+	}
+}
