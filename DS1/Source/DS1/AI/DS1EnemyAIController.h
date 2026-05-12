@@ -6,6 +6,8 @@
 #include "AIController.h"
 #include "DS1EnemyAIController.generated.h"
 
+struct FAIStimulus;
+
 /**
  * 
  */
@@ -26,9 +28,22 @@ public:
 	void StopAI();
 
 protected:
+	UFUNCTION()
+	void TargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	void SetTarget(AActor* NewTarget);
+
+protected:
 	UPROPERTY(EditAnywhere, Category = AI)
 	TObjectPtr<class UBlackboardData> BBAsset;
 
 	UPROPERTY(EditAnywhere, Category = AI)
 	TObjectPtr<class UBehaviorTree> BTAsset;
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
+
+	// 시각 감지 타이머
+	FTimerHandle SightTimerHandle;
 };

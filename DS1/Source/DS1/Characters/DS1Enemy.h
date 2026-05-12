@@ -5,12 +5,14 @@
 #include "CoreMinimal.h"
 #include "DS1Define.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/DS1AICombatInterface.h"
 #include "DS1Enemy.generated.h"
 
+struct FGameplayTag;
 class ATargetPoint;
 
 UCLASS()
-class DS1_API ADS1Enemy : public ACharacter
+class DS1_API ADS1Enemy : public ACharacter, public IDS1AICombatInterface
 {
 	GENERATED_BODY()
 
@@ -30,6 +32,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+public:
+	virtual void PerformAttack(FGameplayTag& AttakTag, FOnMontageEnded& MontageEnedDelegate) override;
 
 public:
 	virtual void OnDeath();
@@ -90,12 +95,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Montage | HitReact")
 	TObjectPtr<UAnimMontage> HitReactAnimRight;
 
+// 기본 무기 설정
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ADS1Weapon> DefaultWeaponClass;
+
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UDS1AttributeComponent> AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UDS1StateComponent> StateComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UDS1CombatComponent> CombatComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UWidgetComponent> HealthBarWidgetComponent;

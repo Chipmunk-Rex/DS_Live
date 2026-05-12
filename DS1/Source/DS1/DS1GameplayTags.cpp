@@ -9,6 +9,7 @@ namespace DS1GameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_Rolling, "Character.State.Rolling");
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_GeneralAction, "Character.State.GeneralAction");
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_Death, "Character.State.Death");
+	UE_DEFINE_GAMEPLAY_TAG(Character_State_Hit, "Character.State.Hit");
 
 	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Light, "Character.Attack.Light");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Attack_Special, "Character.Attack.Special");

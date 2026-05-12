@@ -25,6 +25,17 @@ public:
 	virtual void NotifyControllerChanged() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+// Damage System
+public:
+	virtual void OnDeath();
+
+protected:
+	void ImpactEffect(const FVector& Location);
+	void HitReaction(const AActor* Attacker);
+	UAnimMontage* GetHitReactAnimation(const AActor* Attacker) const;
+
 public:
 	bool IsMoving() const;
 	bool CanToggleCombat() const;
@@ -52,6 +63,28 @@ public:
 	FORCEINLINE class UDS1AttributeComponent* GetAttributeComponent() const { return AttributeComponent; }
 
 	FORCEINLINE class UDS1StateComponent* GetStateComponent() const { return StateComponent; }
+
+	// Effect Section
+protected:
+	UPROPERTY(EditAnywhere, Category = "Effect")
+	TObjectPtr<USoundCue> ImpactSound;
+
+	UPROPERTY(EditAnywhere, Category = "Effect")
+	TObjectPtr<UParticleSystem> ImpactParticle;
+
+	// Montage Section
+protected:
+	UPROPERTY(EditAnywhere, Category = "Montage | HitReact")
+	TObjectPtr<UAnimMontage> HitReactAnimFront;
+
+	UPROPERTY(EditAnywhere, Category = "Montage | HitReact")
+	TObjectPtr<UAnimMontage> HitReactAnimBack;
+
+	UPROPERTY(EditAnywhere, Category = "Montage | HitReact")
+	TObjectPtr<UAnimMontage> HitReactAnimLeft;
+
+	UPROPERTY(EditAnywhere, Category = "Montage | HitReact")
+	TObjectPtr<UAnimMontage> HitReactAnimRight;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = Sprinting)

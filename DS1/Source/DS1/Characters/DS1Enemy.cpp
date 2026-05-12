@@ -3,6 +3,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/DS1AttributeComponent.h"
 #include "Components/DS1StateComponent.h"
+#include "Components/DS1CombatComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DamageEvents.h"
@@ -10,6 +11,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Sound/SoundCue.h"
 #include "UI/DS1StatBarWidget.h"
+#include "Equipments/DS1Weapon.h"
+#include "DS1GameplayTags.h"
 
 ADS1Enemy::ADS1Enemy()
 {
@@ -30,6 +33,9 @@ ADS1Enemy::ADS1Enemy()
 	// State 컴포넌트 생성
 	StateComponent = CreateDefaultSubobject<UDS1StateComponent>(TEXT("State"));
 
+	// Combat 컴포넌트 생성
+	CombatComponent = CreateDefaultSubobject<UDS1CombatComponent>(TEXT("Combat"));
+
 	// Health Bar
 	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarWidget"));
 	HealthBarWidgetComponent->SetupAttachment(GetRootComponent());
@@ -44,6 +50,26 @@ void ADS1Enemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// 무기 장착
+	if (DefaultWeaponClass)
+	{
+		if (CombatComponent)
+		{
+			CombatComponent->SetCombatEnabled(true);
+		}
+
+		FActorSpawnParameters Params;
+		Params.Owner = this;
+
+		ADS1Weapon* Weapon = GetWorld()->SpawnActor<ADS1Weapon>(DefaultWeaponClass, GetActorTransform(), Params);
+
+		if (Weapon)
+		{
+			Weapon->EquipItem();
+		}
+	}
+
+	// 체력 설정
 	SetupHealthBar();
 }
 
@@ -94,6 +120,37 @@ float ADS1Enemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 	}
 
 	return ActualDamage;
+}
+
+void ADS1Enemy::PerformAttack(FGameplayTag& AttakTag, FOnMontageEnded& MontageEnedDelegate)
+{
+	check(StateComponent);
+	check(AttributeComponent);
+	check(CombatComponent);
+
+	ADS1Weapon* Weapon = CombatComponent->GetMainWeapon();
+	if (Weapon)
+	{
+		StateComponent->SetCurrentState(DS1GameplayTags::Character_State_Attacking);
+		AttributeComponent->ToggleStaminaRegeneration(false);
+
+		Weapon->SetLastAttackType(AttakTag);
+
+		UAnimMontage* Montage = Weapon->GetMontageForTag(AttakTag);
+		if (Montage)
+		{
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			if (AnimInstance)
+			{
+				AnimInstance->Montage_Play(Montage);
+				AnimInstance->Montage_SetEndDelegate(MontageEnedDelegate, Montage);
+			}
+		}
+
+		const float StaminaCost = Weapon->GetStaminaCost(AttakTag);
+		AttributeComponent->DecreaseStamina(StaminaCost);
+		AttributeComponent->ToggleStaminaRegeneration(true, 1.5f);
+	}
 }
 
 void ADS1Enemy::OnDeath()
